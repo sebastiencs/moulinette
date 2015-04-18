@@ -164,19 +164,22 @@ class Norme(object):
         return 0
 
     def inspecter_prototype_dans_code(self):
-        """ Gere pas le multiligne ni si y'a pas de params "()" """
+        """ Gere pas le multiligne """
         for index, line in enumerate(self.lines):
             strtab = line.split()
             if ('=' not in line and '(' in line and ')' in line and ';' in line
-                and len(strtab) > 2 and '(' in strtab[1] and self.mot_clef_dans_ligne(line) == 0):
+                and len(strtab) > 1 and '(' in strtab[1] and self.mot_clef_dans_ligne(line) == 0):
                 i = 0
-                for c in line[line.index('('):line.index(')')]:
-                    if c == ' ' and i != 0:
-                        self.reporter_erreur("Prototype dans un fichier .c", index + 1)
-                    if c == ',':
-                        i = 0
-                    else:
-                        i += 1
+                if line[line.index('(') + 1] == ')':
+                    self.reporter_erreur("Prototype dans un fichier .c", index + 1)
+                else:
+                    for c in line[line.index('('):line.index(')')]:
+                        if c == ' ' and i != 0:
+                            self.reporter_erreur("Prototype dans un fichier .c", index + 1)
+                        if c == ',':
+                            i = 0
+                        else:
+                            i += 1
 
     def dans_une_chaine(self, line, index):
         chaine = False

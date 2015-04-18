@@ -65,20 +65,26 @@ class Norme(object):
 
     def inspecter_macro_temoin(self):
         i = 0
+        if platform.system() == "Windows":
+            macro_attendue = self.nom_fichier.upper().split('\\')[-1].split('.')[0] + "_H_"
+        else:
+            macro_attendue = self.nom_fichier.upper().split('/')[-1].split('.')[0] + "_H_"
         macro_temoin = []
         while i < len(self.lines) and self.lines[i].startswith("#ifndef ") == False:
             i += 1
         if i == len(self.lines) or len(self.lines[i].split()) < 2:
-            return self.reporter_erreur("Pas de macro temoin", 1)
+            return self.reporter_erreur("Pas de macro temoin", i + 1)
         macro_temoin = self.lines[i].split()[1]
+        if macro_temoin != macro_attendue:
+            return self.reporter_erreur("Macro temoin differente de celle attendue (" + macro_attendue + ")", i + 1)
         if self.lines[i + 1].startswith("# define") == False or len(self.lines[i + 1].split()) < 3:
-            return self.reporter_erreur("#ifndef doit etre suivi de \"# define \" sur la ligne suivante", i + i)
+            return self.reporter_erreur("#ifndef doit etre suivi de \"# define \" sur la ligne suivante", i + 2)
         if self.lines[i + 1].split()[2] != macro_temoin:
-            return self.reporter_erreur("Deux macros temoins differentes", i + 1)
+            return self.reporter_erreur("Deux macros temoins differentes", i + 2)
         while i < len(self.lines) and self.lines[i].startswith("#endif /* !" + macro_temoin + " */") == False:
             i += 1
         if i == len(self.lines):
-            return self.reporter_erreur("Pas de #endif pour la macro temoin, ou mal formate: \"#endif /* !MACRO /*\"", i)
+            return self.reporter_erreur("Pas de #endif pour la macro temoin, ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
 
     def inspecter_h(self):
         self.inspecter_entete()

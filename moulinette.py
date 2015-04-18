@@ -132,8 +132,19 @@ class Norme(object):
         if nb_fonctions > 5:
             self.reporter_erreur(str(nb_fonctions) + " fonctions dans le fichier", 1)
 
+    def inspecter_fonctions_dans_header(self):
+        keyword = ["return", "while", "for", "if"]
+        for index, line in enumerate(self.lines):
+            for key in keyword:
+                if key in line.split() and line.startswith("**") == False:
+                    self.reporter_danger("Il semble que t'ai mis du code dans un fichier header: "
+                                         + "utilisation du mot clef " + key, index + 1)
+            if '(' in line and ')' in line and 'DEFINE' not in line.upper() and ';' not in line:
+                    self.reporter_danger("Il semble que t'ai mis du code dans un fichier header: ", index + 1)
+
     def inspecter_h(self):
         self.inspecter_macro_temoin()
+        self.inspecter_fonctions_dans_header()
 
     def inspecter_fichier(self):
         try:

@@ -3,7 +3,7 @@ import os
 import platform
 from colorama import init, Fore
 
-ESPACES_PAR_TABULATION = 4
+ESPACES_PAR_TABULATION = 8
 
 auteurs = []
 
@@ -14,20 +14,36 @@ class Norme(object):
         self.f = 0
         self.lines = []
         self.nb_lignes = 0
+        self.erreurs = []
+        self.dangers = []
 
     def reporter_erreur(self, msg, ligne):
-        print (Fore.RED + "\tErreur: ", end = "")
-        print (Fore.YELLOW + msg, end = "")
-        print (Fore.RED + " ligne " + str(ligne), end = ""),
-        print (Fore.RESET)
+        self.erreurs.append(Fore.RED + "\tErreur: " + Fore.YELLOW
+                            + msg + Fore.RED + " ligne " + str(ligne)
+                            + Fore.RESET)
+        # print (Fore.RED + "\tErreur: ", end = "")
+        # print (Fore.YELLOW + msg, end = "")
+        # print (Fore.RED + " ligne " + str(ligne), end = ""),
+        # print (Fore.RESET)
         return -1
 
     def reporter_danger(self, msg, ligne):
-        print (Fore.YELLOW + "\tDanger: ", end = "")
-        print (Fore.YELLOW + msg, end = "")
-        print (Fore.YELLOW + " ligne " + str(ligne), end = ""),
-        print (Fore.RESET)
+        self.dangers.append(Fore.YELLOW + "\tDanger: "
+                            + msg + " ligne " + str(ligne)
+                            + Fore.RESET)
+        # print (Fore.YELLOW + "\tDanger: ", end = "")
+        # print (Fore.YELLOW + msg, end = "")
+        # print (Fore.YELLOW + " ligne " + str(ligne), end = ""),
+        # print (Fore.RESET)
         return -1
+
+    def afficher_erreurs(self):
+        for erreur in self.erreurs:
+            print (erreur)
+
+    def afficher_dangers(self):
+        for danger in self.dangers:
+            print (danger)
 
     def ajouter_auteur(self, nom):
         if nom not in auteurs:
@@ -35,8 +51,9 @@ class Norme(object):
 
     def inspecter_nombre_colonnes(self):
         for index, line in enumerate(self.lines):
-            if len(line.expandtabs(ESPACES_PAR_TABULATION)) > 80:
-                self.reporter_erreur("Nombre de colonnes > 80", index + 1)
+            size = len(line.expandtabs(ESPACES_PAR_TABULATION))
+            if size > 80:
+                self.reporter_erreur("Ligne de " + str(size) + " colonnes", index + 1)
 
     def inspecter_nombre_instruction(self):
         chaines = False
@@ -145,9 +162,12 @@ class Norme(object):
                 if key in line.split() and line.startswith("**") == False:
                     self.reporter_danger("Il semble que t'ai mis du code dans un fichier header: "
                                          + "utilisation du mot clef " + key, index + 1)
-            if '(' in line and ')' in line and 'DEFINE' not in line.upper() and ';' not in line:
-                    self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
-
+                if '(' in line and ')' in line and 'DEFINE' not in line.upper() and ';' not in line:
+                    if index == 0:
+                        self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
+                    elif self.lines[index - 1].split()[-1] != '\\':
+                        self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
+                        
     def inspecter_macro_dans_code(self):
         for index, line in enumerate(self.lines):
             strtab = line.split()
@@ -156,7 +176,7 @@ class Norme(object):
                 self.reporter_erreur("Presence de macros dans un fichier .c", index + 1)
 
     def mot_clef_dans_ligne(self, ligne):
-        keyword = ["return", "while", "for", "if"]
+        keyword = ["return", "while", "for", "if", "+", "-", "%"]
         strtab = ligne.split()
         for key in keyword:
             if key in strtab:
@@ -168,7 +188,8 @@ class Norme(object):
         for index, line in enumerate(self.lines):
             strtab = line.split()
             if ('=' not in line and '(' in line and ')' in line and ';' in line
-                and len(strtab) > 1 and '(' in strtab[1] and self.mot_clef_dans_ligne(line) == 0):
+                and len(strtab) > 1 and '(' in strtab[1] and self.mot_clef_dans_ligne(line) == 0
+                and '(' not in strtab[0]):
                 i = 0
                 if line[line.index('(') + 1] == ')':
                     self.reporter_erreur("Prototype dans un fichier .c", index + 1)
@@ -222,10 +243,13 @@ class Norme(object):
 
     def is_variable_declaration(self, index):
         strtab = self.lines[index].split()
-        if len(strtab) > 0 and strtab[0] == "static":
-            return True
-        if len(strtab) == 2 and '(' not in self.lines[index]:
-            return True
+        if len(strtab) > 0 and '#' not in strtab[0]:
+            if len(strtab) > 0 and strtab[0] == "static":
+                return True
+            elif len(strtab) == 2 and '(' not in self.lines[index]:
+                return True
+            elif len(strtab) == 3 and '(' not in self.lines[index] and strtab[0] == "unsigned":
+                return True
         return False
 
     def get_alignement_variable(self, line, index):
@@ -235,12 +259,16 @@ class Norme(object):
             i += 1
         if line.find("static ", i, i + 7) != -1:
             i += 7
+        if line.find("unsigned ", i, i + 9) != -1:
+            i += 9
+        if line.find("long long", i, i + 9) >= 0:
+            i += 9
         while i < len(line) and line[i].isalnum() == True or line[i] == '_':
             i += 1
         debut = i
         while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
             if line[i] == ' ':
-                print (i)
+#                print (i)
                 self.reporter_erreur("Utilisation d'espace entre le type et le nom de la variable", index + 1)
                 return 0
             i += 1
@@ -273,23 +301,32 @@ class Norme(object):
                 and len(self.lines[index]) > 0 and self.lines[index][0] != '}'
                 and self.lines[index][0] != '\n'
                 and '#' not in line
+                and "extern" not in line
+                and line.startswith("**") == False and line.startswith("*/") == False
+                and line.startswith("/*") == False
                 and '=' not in line):
                 i = 0
                 if line.startswith("static "):
                     i = 7
-                while i < len(line) and line[i].isalnum() == True:
+                if line.find("inline ", i, i + 7) >= 0:
+                    i += 7
+                if line.find("unsigned ", i, i + 9) >= 0:
+                    i += 9
+                if line.find("long long", i, i + 9) >= 0:
+                    i += 9
+                while i < len(line) and (line[i].isalnum() == True or line[i] == '_'):
                     i += 1
                 debut = i
                 while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
                     if line[i] == ' ':
-                        print (line)
+#                        print (line)
                         self.reporter_erreur("Utilisation d'espace entre le type et le nom de fonction", index + 1)
                         return 0
                     i += 1
                 alignement_nom_fonction = self.get_alignement_nom_fonction(line, debut)
                 alignement_nom_variable = self.get_alignement_nom_variable(index)
                 if len(alignement_nom_variable) > 0:
-                    print (alignement_nom_variable)
+#                    print (alignement_nom_variable)
                     for var in alignement_nom_variable:
                         if alignement_nom_fonction != var:
                             print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
@@ -347,4 +384,6 @@ if __name__ == '__main__':
         for file in files:
             check = Norme(file)
             check.inspecter_fichier()
-        print ("\nauteurs: " + " ".join(auteurs))
+            check.afficher_dangers()
+            check.afficher_erreurs()
+        print ("\nLogins trouves: " + Fore.GREEN + " ".join(auteurs) + Fore.RESET)

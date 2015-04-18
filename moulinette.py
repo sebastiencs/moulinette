@@ -214,6 +214,87 @@ class Norme(object):
                 if self.dans_une_fonction(index) == True:
                     self.reporter_erreur("Commentaire dans du code", index + 1)
 
+    def get_alignement_nom_fonction(self, line, debut):
+        line = line.expandtabs(ESPACES_PAR_TABULATION)
+        while debut < len(line) and line[debut] == ' ':
+            debut += 1
+        return debut + 1
+
+    def is_variable_declaration(self, index):
+        strtab = self.lines[index].split()
+        if len(strtab) > 0 and strtab[0] == "static":
+            return True
+        if len(strtab) == 2 and '(' not in self.lines[index]:
+            return True
+        return False
+
+    def get_alignement_variable(self, line, index):
+#        print (line, end = "")
+        i = 0
+        while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
+            i += 1
+        if line.find("static ", i, i + 7) != -1:
+            i += 7
+        while i < len(line) and line[i].isalnum() == True or line[i] == '_':
+            i += 1
+        debut = i
+        while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
+            if line[i] == ' ':
+                print (i)
+                self.reporter_erreur("Utilisation d'espace entre le type et le nom de la variable", index + 1)
+                return 0
+            i += 1
+        alignement_variable = self.get_alignement_nom_fonction(line, debut)
+#        print ("align: " + str(alignement_variable) + " line: " + str(line))
+        return alignement_variable
+#        print ("debut: " + str(debut) + " " + line + " " + str(alignement_variable))
+
+    def get_alignement_nom_variable(self, index):
+        alignements = []
+        while index < len(self.lines) and self.lines[index][0] != '{':
+            index += 1
+        index += 1
+        while self.is_variable_declaration(index) == True:
+#            print (self.lines[index], end = "")
+            alignements.append(self.get_alignement_variable(self.lines[index], index))
+            index += 1
+#        print (alignements)
+        return alignements
+
+    def inspecter_alignement(self):
+        alignement = 0
+        for index, line in enumerate(self.lines):
+            if (index < len(self.lines) - 1 and len(self.lines[index + 1]) > 0
+                and self.lines[index][0] != ' ' and self.lines[index][0] != '\t'
+                and (self.lines[index + 1][0] == '{'
+                     or (index < len(self.lines) - 2 and self.lines[index + 2][0] == '{')
+                     or (index < len(self.lines) - 3 and self.lines[index + 3][0] == '{')
+                     or (index < len(self.lines) - 4 and self.lines[index + 4][0] == '{'))
+                and len(self.lines[index]) > 0 and self.lines[index][0] != '}'
+                and self.lines[index][0] != '\n'
+                and '#' not in line
+                and '=' not in line):
+                i = 0
+                if line.startswith("static "):
+                    i = 7
+                while i < len(line) and line[i].isalnum() == True:
+                    i += 1
+                debut = i
+                while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
+                    if line[i] == ' ':
+                        print (line)
+                        self.reporter_erreur("Utilisation d'espace entre le type et le nom de fonction", index + 1)
+                        return 0
+                    i += 1
+                alignement_nom_fonction = self.get_alignement_nom_fonction(line, debut)
+                alignement_nom_variable = self.get_alignement_nom_variable(index)
+                if len(alignement_nom_variable) > 0:
+                    print (alignement_nom_variable)
+                    for var in alignement_nom_variable:
+                        if alignement_nom_fonction != var:
+                            print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
+                            return self.reporter_erreur("Mauvais alignements de la fonction avec les variables", index + 1)
+
     def inspecter_h(self):
         self.inspecter_macro_temoin()
         self.inspecter_fonctions_dans_header()
@@ -221,6 +302,7 @@ class Norme(object):
     def inspecter_c(self):
         self.inspecter_macro_dans_code()
         self.inspecter_prototype_dans_code()
+        self.inspecter_alignement()
 
     def inspecter_fichier(self):
         try:

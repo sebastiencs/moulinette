@@ -196,6 +196,24 @@ class Norme(object):
             if found >= 0 and self.dans_une_chaine(line, found) == False:
                 self.reporter_erreur("Commentaire CPP", index + 1)
 
+    def dans_une_fonction(self, index):
+        fonction = False
+        for i, line in enumerate(self.lines):
+            if len(line) > 0 and line[0] == '{':
+                fonction = True
+            if len(line) > 0 and line[0] == '}':
+                fonction = False
+            if i == index and fonction == True:
+                return True
+        return False
+
+    def inspecter_commentaire_dans_fonction(self):
+        for index, line in enumerate(self.lines):
+            found = line.find("/*")
+            if found >= 0 and self.dans_une_chaine(line, found) == False:
+                if self.dans_une_fonction(index) == True:
+                    self.reporter_erreur("Commentaire dans du code", index + 1)
+
     def inspecter_h(self):
         self.inspecter_macro_temoin()
         self.inspecter_fonctions_dans_header()
@@ -227,6 +245,7 @@ class Norme(object):
         self.inspecter_nombre_fonctions()
         self.inspecter_macro_multilignes()
         self.inspecter_commentaire_cpp()
+        self.inspecter_commentaire_dans_fonction()
 
 def get_list_files(dir_name):
     files = []

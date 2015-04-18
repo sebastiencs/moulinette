@@ -3,6 +3,8 @@ import os
 import platform
 from colorama import init, Fore
 
+ESPACES_PAR_TABULATION = 4
+
 auteurs = []
 
 class Norme(object):
@@ -21,15 +23,34 @@ class Norme(object):
         return -1
 
     def reporter_danger(self, msg, ligne):
-        print (Fore.BLUE + "\tDanger: ", end = "")
+        print (Fore.YELLOW + "\tDanger: ", end = "")
         print (Fore.YELLOW + msg, end = "")
-        print (Fore.BLUE + " ligne " + str(ligne), end = ""),
+        print (Fore.YELLOW + " ligne " + str(ligne), end = ""),
         print (Fore.RESET)
         return -1
 
     def ajouter_auteur(self, nom):
         if nom not in auteurs:
             auteurs.append(nom)
+
+    def inspecter_nombre_colonnes(self):
+        for index, line in enumerate(self.lines):
+            if len(line.expandtabs(ESPACES_PAR_TABULATION)) > 80:
+                self.reporter_erreur("Nombre de colonnes > 80", index + 1)
+
+    def inspecter_nombre_instruction(self):
+        chaines = False
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if line.count(';') > 1 and strtab[0] != "for":
+                n_inst = 0
+                for c in line:
+                    if c == '"':
+                        chaines = not chaines
+                    if c == ';' and chaines == False:
+                        n_inst += 1
+                if n_inst > 1:
+                    self.reporter_erreur("Nombres d'instructions > 1", index + 1)
 
     def inspecter_entete(self):
         if self.nb_lignes < 9:
@@ -98,15 +119,16 @@ class Norme(object):
 
         for line in self.f:
             self.lines.append(line)
+        self.f.close()
         self.nb_lignes = len(self.lines)
 
         if self.nom_fichier.endswith(".h"):
             print ("fichier: " + file)
             self.inspecter_h()
+            self.inspecter_nombre_colonnes()
+            self.inspecter_nombre_instruction()
         else:
             pass
-
-        self.f.close()
 
 def get_list_files(dir_name):
     files = []

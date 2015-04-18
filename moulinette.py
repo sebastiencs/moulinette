@@ -155,12 +155,37 @@ class Norme(object):
                 or (len(strtab) > 0 and strtab[0].upper() == "#DEFINE")):
                 self.reporter_erreur("Presence de macros dans un fichier .c", index + 1)
 
+    def mot_clef_dans_ligne(self, ligne):
+        keyword = ["return", "while", "for", "if"]
+        strtab = ligne.split()
+        for key in keyword:
+            if key in strtab:
+                return 1
+        return 0
+
+    def inspecter_prototype_dans_code(self):
+        """ Gere pas le multiligne ni si y'a pas de params "()" """
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if ('=' not in line and '(' in line and ')' in line and ';' in line
+                and len(strtab) > 2 and '(' in strtab[1] and self.mot_clef_dans_ligne(line) == 0):
+                i = 0
+                for c in line[line.index('('):line.index(')')]:
+                    if c == ' ' and i != 0:
+                        print (line)
+                        self.reporter_erreur("Prototype dans un fichier .c", index + 1)
+                    if c == ',':
+                        i = 0
+                    else:
+                        i += 1
+
     def inspecter_h(self):
         self.inspecter_macro_temoin()
         self.inspecter_fonctions_dans_header()
 
     def inspecter_c(self):
         self.inspecter_macro_dans_code()
+        self.inspecter_prototype_dans_code()
 
     def inspecter_fichier(self):
         try:
@@ -173,7 +198,7 @@ class Norme(object):
         self.f.close()
         self.nb_lignes = len(self.lines)
 
-        print ("fichier: " + file)
+        print (file)
         if self.nom_fichier.endswith(".h"):
             self.inspecter_h()
         else:

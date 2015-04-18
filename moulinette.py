@@ -132,6 +132,12 @@ class Norme(object):
         if nb_fonctions > 5:
             self.reporter_erreur(str(nb_fonctions) + " fonctions dans le fichier", 1)
 
+    def inspecter_macro_multilignes(self):
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if len(strtab) > 0 and strtab[0] == '#' and strtab[1].upper() == "define" and strtab[-1] == '\\':
+                self.reporter_erreur("Macro multilignes", index + 1)
+
     def inspecter_fonctions_dans_header(self):
         keyword = ["return", "while", "for", "if"]
         for index, line in enumerate(self.lines):
@@ -165,6 +171,7 @@ class Norme(object):
         self.inspecter_nombre_instruction()
         self.inspecter_nombre_ligne_par_fonction()
         self.inspecter_nombre_fonctions()
+        self.inspecter_macro_multilignes()
 
 def get_list_files(dir_name):
     files = []

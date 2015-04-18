@@ -146,11 +146,21 @@ class Norme(object):
                     self.reporter_danger("Il semble que t'ai mis du code dans un fichier header: "
                                          + "utilisation du mot clef " + key, index + 1)
             if '(' in line and ')' in line and 'DEFINE' not in line.upper() and ';' not in line:
-                    self.reporter_danger("Il semble que t'ai mis du code dans un fichier header: ", index + 1)
+                    self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
+
+    def inspecter_macro_dans_code(self):
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if ((len(strtab) > 1 and strtab[0] == '#' and strtab[1].upper() == 'DEFINE')
+                or (len(strtab) > 0 and strtab[0].upper() == "#DEFINE")):
+                self.reporter_erreur("Presence de macros dans un fichier .c", index + 1)
 
     def inspecter_h(self):
         self.inspecter_macro_temoin()
         self.inspecter_fonctions_dans_header()
+
+    def inspecter_c(self):
+        self.inspecter_macro_dans_code()
 
     def inspecter_fichier(self):
         try:
@@ -166,6 +176,8 @@ class Norme(object):
         print ("fichier: " + file)
         if self.nom_fichier.endswith(".h"):
             self.inspecter_h()
+        else:
+            self.inspecter_c()
         self.inspecter_entete()
         self.inspecter_nombre_colonnes()
         self.inspecter_nombre_instruction()

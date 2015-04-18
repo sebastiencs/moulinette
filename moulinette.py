@@ -172,12 +172,26 @@ class Norme(object):
                 i = 0
                 for c in line[line.index('('):line.index(')')]:
                     if c == ' ' and i != 0:
-                        print (line)
                         self.reporter_erreur("Prototype dans un fichier .c", index + 1)
                     if c == ',':
                         i = 0
                     else:
                         i += 1
+
+    def dans_une_chaine(self, line, index):
+        chaine = False
+        for i, c in enumerate(line):
+            if c == '"':
+                chaine = not chaine
+            if i == index and chaine == True:
+                return True
+        return False
+
+    def inspecter_commentaire_cpp(self):
+        for index, line in enumerate(self.lines):
+            found = line.find("//")
+            if found >= 0 and self.dans_une_chaine(line, found) == False:
+                self.reporter_erreur("Commentaire CPP", index + 1)
 
     def inspecter_h(self):
         self.inspecter_macro_temoin()
@@ -209,6 +223,7 @@ class Norme(object):
         self.inspecter_nombre_ligne_par_fonction()
         self.inspecter_nombre_fonctions()
         self.inspecter_macro_multilignes()
+        self.inspecter_commentaire_cpp()
 
 def get_list_files(dir_name):
     files = []

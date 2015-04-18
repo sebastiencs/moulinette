@@ -115,14 +115,24 @@ class Norme(object):
 
     def inspecter_nombre_ligne_par_fonction(self):
         for index, line in enumerate(self.lines):
-            if (index > 0 and line[0] == '{' and self.lines[index - 1].split()[-1] != '='):
+            if index > 0 and line[0] == '{' and self.lines[index - 1].split()[-1] != '=':
                 fin_fonction = self.recuperer_fin_fonction(index)
                 nb_lignes = fin_fonction - index - 1
                 if nb_lignes > 25:
                     self.reporter_erreur("Fonction de " + str(nb_lignes) + " lignes", index + 1)
 
+    def inspecter_nombre_fonctions(self):
+        nb_fonctions = 0
+        keyword = ["typedef", "enum", "struct", "union"]
+        for index, line in enumerate(self.lines):
+            if (index > 0 and line[0] == '{'
+                and self.lines[index - 1].split()[-1] != '='
+                and self.lines[index - 1].split()[0] not in keyword):
+                nb_fonctions += 1
+        if nb_fonctions > 5:
+            self.reporter_erreur(str(nb_fonctions) + " fonctions dans le fichier", 1)
+
     def inspecter_h(self):
-        self.inspecter_entete()
         self.inspecter_macro_temoin()
 
     def inspecter_fichier(self):
@@ -139,9 +149,11 @@ class Norme(object):
         print ("fichier: " + file)
         if self.nom_fichier.endswith(".h"):
             self.inspecter_h()
+        self.inspecter_entete()
         self.inspecter_nombre_colonnes()
         self.inspecter_nombre_instruction()
         self.inspecter_nombre_ligne_par_fonction()
+        self.inspecter_nombre_fonctions()
 
 def get_list_files(dir_name):
     files = []

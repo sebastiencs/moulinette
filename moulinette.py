@@ -16,34 +16,40 @@ class Norme(object):
         self.nb_lignes = 0
         self.erreurs = []
         self.dangers = []
+        self.nom_afficher = 0
 
     def reporter_erreur(self, msg, ligne):
         self.erreurs.append(Fore.RED + "\tErreur: " + Fore.YELLOW
                             + msg + Fore.RED + " ligne " + str(ligne)
                             + Fore.RESET)
-        # print (Fore.RED + "\tErreur: ", end = "")
-        # print (Fore.YELLOW + msg, end = "")
-        # print (Fore.RED + " ligne " + str(ligne), end = ""),
-        # print (Fore.RESET)
+        # print (self.nom_fichier)
+        # print (Fore.RED + msg + " line " + str(ligne) + Fore.RESET)
         return -1
 
     def reporter_danger(self, msg, ligne):
         self.dangers.append(Fore.YELLOW + "\tDanger: "
                             + msg + " ligne " + str(ligne)
                             + Fore.RESET)
-        # print (Fore.YELLOW + "\tDanger: ", end = "")
-        # print (Fore.YELLOW + msg, end = "")
-        # print (Fore.YELLOW + " ligne " + str(ligne), end = ""),
-        # print (Fore.RESET)
+        # print (self.nom_fichier)
+        # print (Fore.YELLOW + msg + " line " + str(ligne) + Fore.RESET)
         return -1
 
     def afficher_erreurs(self):
+        if self.nom_afficher == 0 and len(self.erreurs) > 0:
+            print (self.nom_fichier)
+            self.nom_afficher = 1
         for erreur in self.erreurs:
             print (erreur)
 
     def afficher_dangers(self):
+        if self.nom_afficher == 0 and len(self.dangers) > 0:
+            print (self.nom_fichier)
+            self.nom_afficher = 1
         for danger in self.dangers:
             print (danger)
+
+    def nombres_erreurs_et_dangers(self):
+        return len(self.erreurs) + len(self.dangers)
 
     def ajouter_auteur(self, nom):
         if nom not in auteurs:
@@ -165,7 +171,9 @@ class Norme(object):
                 if '(' in line and ')' in line and 'DEFINE' not in line.upper() and ';' not in line:
                     if index == 0:
                         self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
-                    elif self.lines[index - 1].split()[-1] != '\\':
+                    elif (len(self.lines[index - 1]) > 0
+                    and len(self.lines[index - 1].split()) > 0
+                    and self.lines[index - 1].split()[-1] != '\\'):
                         self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
                         
     def inspecter_macro_dans_code(self):
@@ -304,6 +312,7 @@ class Norme(object):
                 and "extern" not in line
                 and line.startswith("**") == False and line.startswith("*/") == False
                 and line.startswith("/*") == False
+                and line.find('(') >= 0
                 and '=' not in line):
                 i = 0
                 if line.startswith("static "):
@@ -332,6 +341,51 @@ class Norme(object):
                             print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
                             return self.reporter_erreur("Mauvais alignements de la fonction avec les variables", index + 1)
 
+    def inspecter_macro_majuscule(self):
+        for index, line in enumerate(self.lines):
+            if len(line) > 0:
+                strtab = line.split()
+                if len(strtab) > 2 and strtab[0].upper() == "#DEFINE" and strtab[1].upper() != strtab[1]:
+                    self.reporter_erreur("La macro doit etre en majuscule", index + 1)
+                elif (len(strtab) > 3 and strtab[0] == '#' and strtab[1].upper() == "DEFINE"
+                and strtab[2].upper() != strtab[2]):
+                    self.reporter_erreur("La macro doit etre en majuscule", index + 1)
+
+    def inspecter_typedef(self):
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if len(strtab) > 0 and strtab[0] == "typedef":
+                if len(strtab) > 2:
+                    if strtab[1] == "struct" and strtab[2].startswith("s_") == False:
+                        self.reporter_erreur("Le nom de structure doit commencer par \"s_\"", index + 1)
+                    elif strtab[1] == "union" and strtab[2].startswith("u_") == False:
+                        self.reporter_erreur("Le nom d'union doit commencer par \"u_\"", index + 1)
+                    if ';' in line and strtab[-1].startswith("t_") == False:
+                        self.reporter_erreur("Le nom d'un type doit commencer par \"t_\"", index + 1)
+                    elif ';' not in line:
+                        i = index
+                        while i < len(self.lines) and self.lines[i][0] != '}':
+                            i += 1
+                        if i != len(self.lines):
+                            strtab2 = self.lines[i].split()
+                            if len(strtab2[-1]) > 0 and strtab2[-1].startswith("t_") == False:
+                                self.reporter_erreur("Le nom d'un type doit commencer par \"t_\"", index + 1)
+
+    def inspecter_global(self):
+        for index, line in enumerate(self.lines):
+            strtab = line.split()
+            if (len(strtab) > 1 and self.dans_une_fonction(index) == False
+                and line.startswith("**") == False and line.startswith("/*") == False
+                and line.startswith("*/") == False and '#' not in line
+                and '(' not in line and ')' not in line):
+                if (len(strtab) > 3 and strtab[-1] == '{' and strtab[-2] == '='
+                    and strtab[-3].startswith("g_") == False):
+                    self.reporter_erreur("1Une globale doit commencer \"g_\"", index + 1)
+                elif (len(strtab) > 2 and strtab[-1] == '=' and strtab[-2].startswith("g_") == False):
+                    self.reporter_erreur("2Une globale doit commencer \"g_\"", index + 1)
+                elif strtab[1].startswith("g_") == False and strtab[1][-1] == ';' and strtab[0] != '}':
+                    self.reporter_erreur("3Une globale doit commencer \"g_\"", index + 1)
+
     def inspecter_h(self):
         self.inspecter_macro_temoin()
         self.inspecter_fonctions_dans_header()
@@ -352,7 +406,7 @@ class Norme(object):
         self.f.close()
         self.nb_lignes = len(self.lines)
 
-        print (file)
+#        print (file)
         if self.nom_fichier.endswith(".h"):
             self.inspecter_h()
         else:
@@ -365,7 +419,10 @@ class Norme(object):
         self.inspecter_macro_multilignes()
         self.inspecter_commentaire_cpp()
         self.inspecter_commentaire_dans_fonction()
-
+        self.inspecter_macro_majuscule()
+        self.inspecter_typedef()
+        self.inspecter_global()
+        
 def get_list_files(dir_name):
     files = []
     for path, dirs, filenames in os.walk(dir_name):
@@ -374,6 +431,19 @@ def get_list_files(dir_name):
                 files.append(os.path.join(path, file))
     return files
 
+def afficher_erreur(nb):
+    if nb == 0:
+        print (Fore.GREEN + "Aucune erreur trouve" + Fore.RESET)
+    else:
+        print("")
+        print (Fore.YELLOW + str(nb) + " erreurs et dangers trouves" + Fore.RESET)
+
+def afficher_logins():
+    if len(auteurs) > 0:
+        print ("Logins trouves: " + Fore.GREEN + " ".join(auteurs) + Fore.RESET)
+    else:
+        print ("Aucun login trouve")
+        
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
         print ("Usage: ./" + sys.argv[0] + " __DIRECTORY__")
@@ -381,9 +451,12 @@ if __name__ == '__main__':
         if platform.system() == "Windows":
             init()
         files = get_list_files(sys.argv[1])
+        nb_erreurs = 0
         for file in files:
             check = Norme(file)
             check.inspecter_fichier()
             check.afficher_dangers()
             check.afficher_erreurs()
-        print ("\nLogins trouves: " + Fore.GREEN + " ".join(auteurs) + Fore.RESET)
+            nb_erreurs += check.nombres_erreurs_et_dangers()
+        afficher_erreur(nb_erreurs)
+        afficher_logins()

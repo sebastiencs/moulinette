@@ -107,6 +107,20 @@ class Norme(object):
         if i == len(self.lines):
             return self.reporter_erreur("Pas de #endif pour la macro temoin, ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
 
+    def recuperer_fin_fonction(self, index_debut):
+        for index, line in enumerate(self.lines):
+            if index > index_debut and line[0] == '}':
+                return index
+        return 0
+
+    def inspecter_nombre_ligne_par_fonction(self):
+        for index, line in enumerate(self.lines):
+            if (index > 0 and line[0] == '{' and self.lines[index - 1].split()[-1] != '='):
+                fin_fonction = self.recuperer_fin_fonction(index)
+                nb_lignes = fin_fonction - index - 1
+                if nb_lignes > 25:
+                    self.reporter_erreur("Fonction de " + str(nb_lignes) + " lignes", index + 1)
+
     def inspecter_h(self):
         self.inspecter_entete()
         self.inspecter_macro_temoin()
@@ -122,19 +136,18 @@ class Norme(object):
         self.f.close()
         self.nb_lignes = len(self.lines)
 
+        print ("fichier: " + file)
         if self.nom_fichier.endswith(".h"):
-            print ("fichier: " + file)
             self.inspecter_h()
-            self.inspecter_nombre_colonnes()
-            self.inspecter_nombre_instruction()
-        else:
-            pass
+        self.inspecter_nombre_colonnes()
+        self.inspecter_nombre_instruction()
+        self.inspecter_nombre_ligne_par_fonction()
 
 def get_list_files(dir_name):
     files = []
     for path, dirs, filenames in os.walk(dir_name):
         for file in filenames:
-            if file.endswith(".h"): #or file.endswith(".c"):
+            if file.endswith(".h") or file.endswith(".c"):
                 files.append(os.path.join(path, file))
     return files
 

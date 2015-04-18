@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 from colorama import init, Fore
 
 auteurs = []
@@ -17,12 +18,14 @@ class Norme(object):
         print (Fore.YELLOW + msg, end = "")
         print (Fore.RED + " ligne " + str(ligne), end = ""),
         print (Fore.RESET)
+        return -1
 
     def reporter_danger(self, msg, ligne):
         print (Fore.BLUE + "\tDanger: ", end = "")
         print (Fore.YELLOW + msg, end = "")
         print (Fore.BLUE + " ligne " + str(ligne), end = ""),
         print (Fore.RESET)
+        return -1
 
     def ajouter_auteur(self, nom):
         if nom not in auteurs:
@@ -30,11 +33,9 @@ class Norme(object):
 
     def inspecter_entete(self):
         if self.nb_lignes < 9:
-            self.reporter_erreur("Entete manquante", 1)
-            return -1
+            return self.reporter_erreur("Entete manquante", 1)
         if self.lines[0] != "/*\n":
-            self.reporter_erreur("Entete manquante, ou pas a la 1ere ligne (ouais j'suis chiant)", 1)
-            return -1
+            return self.reporter_erreur("Entete manquante, ou pas a la 1ere ligne (ouais j'suis chiant)", 1)
         for i in range(1, 8):
             if self.lines[i].startswith("**") == False:
                 self.reporter_erreur("Entete: debut de ligne different de \"**\"", i)
@@ -62,8 +63,26 @@ class Norme(object):
         else:
             self.ajouter_auteur(self.lines[7].split()[8])
 
+    def inspecter_macro_temoin(self):
+        i = 0
+        macro_temoin = []
+        while i < len(self.lines) and self.lines[i].startswith("#ifndef ") == False:
+            i += 1
+        if i == len(self.lines) or len(self.lines[i].split()) < 2:
+            return self.reporter_erreur("Pas de macro temoin", 1)
+        macro_temoin = self.lines[i].split()[1]
+        if self.lines[i + 1].startswith("# define") == False or len(self.lines[i + 1].split()) < 3:
+            return self.reporter_erreur("#ifndef doit etre suivi de \"# define \" sur la ligne suivante", i + i)
+        if self.lines[i + 1].split()[2] != macro_temoin:
+            return self.reporter_erreur("Deux macros temoins differentes", i + 1)
+        while i < len(self.lines) and self.lines[i].startswith("#endif /* !" + macro_temoin + " */") == False:
+            i += 1
+        if i == len(self.lines):
+            return self.reporter_erreur("Pas de #endif pour la macro temoin, ou mal formate: \"#endif /* !MACRO /*\"", i)
+
     def inspecter_h(self):
         self.inspecter_entete()
+        self.inspecter_macro_temoin()
 
     def inspecter_fichier(self):
         try:
@@ -92,14 +111,13 @@ def get_list_files(dir_name):
     return files
 
 if __name__ == '__main__':
-
-    init()
-
     if len(sys.argv) <= 1:
         print ("Usage: ./" + sys.argv[0] + " __DIRECTORY__")
     else:
+        if platform.system() == "Windows":
+            init()
         files = get_list_files(sys.argv[1])
         for file in files:
             check = Norme(file)
             check.inspecter_fichier()
-        print (auteurs)
+        print ("\nauteurs: " + " ".join(auteurs))

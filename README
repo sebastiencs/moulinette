@@ -1,0 +1,35 @@
+FAIT:
+
+- 80 colonnes max
+- une instruction par ligne
+- 25 lignes par fonction
+- 5 fonctions par fichier
+- Seuls les inclusions de headers, les declarations, les defines, les prototypes et les macros sont autorises dans les fichiers headers.
+- macros multilignes
+- Verification du header
+- Les protopypes et macros se trouvent uniquement dans les fichiers headers
+- Commentaires dans le code
+- Commentaires C++
+- Alignement du nom de fonctions et des variables
+- Noms de macros en majuscules
+- Verification des prefix pour les structures, unions, globales et type
+- Verification de la macro temointe dans le header
+
+A FAIRE:
+
+- identifiants en minuscule, chiffres et _
+- Saut de ligne entre les declarations de variables et les instructions
+- Pas de ligne vide dans du code
+- Declaration et affectation interdite sur la meme ligne
+- Saut de ligne apres une structure de controle
+- 4 parametres par fonctions
+- Un espace apres la virgule
+- Pas d'espace entre le nom de fonctions et la parenthese
+- Espace entre mot clef et la parenthese ou le point virgule
+- Pas d'espace apres un operateur unaire
+- Operateurs binaires et ternaires separes par un espace de chaque cote
+- indenter #if et #ifdef
+- indenter macro imbrique
+- saut de ligne entre chaque fonction
+- mots clef interdits: switch, for, goto, do while
+- Verification du Makefile

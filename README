@@ -9,6 +9,7 @@ VERSION: 0.1
 
 FAIT:
 
+- Affiche les logins trouves dans les fichiers (tu me dois 42 points)
 - 80 colonnes max
 - une instruction par ligne
 - 25 lignes par fonction

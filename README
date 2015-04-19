@@ -1,3 +1,12 @@
+Moulinette faite sur un coup de tete et pour apprendre le pyton.
+Parsing a base de split et readline, donc oui c'est tout sauf du parsing et c'est bien degueulasse
+
+Ca verifie l'alignement des noms de fonctions avec les variables mais dans certains cas (les mots clefs auxquels j'ai pas pense) ca marchera pas
+
+Si ca pete de fausses erreurs pour les alignements ou les 80 colonnes modifie la variable ESPACES_PAR_TABULATIONS au debut du fichier
+
+VERSION: 0.1
+
 FAIT:
 
 - 80 colonnes max
@@ -12,12 +21,12 @@ FAIT:
 - Commentaires C++
 - Alignement du nom de fonctions et des variables
 - Noms de macros en majuscules
-- Verification des prefix pour les structures, unions, globales et type
-- Verification de la macro temointe dans le header
+- Verification des prefix pour les structures, unions, globales et types
+- Verification de la macro temoin dans le header
 
-A FAIRE:
+POUR BIENTOT:
 
-- identifiants en minuscule, chiffres et _
+- identifiants en minuscules, chiffres et _
 - Saut de ligne entre les declarations de variables et les instructions
 - Pas de ligne vide dans du code
 - Declaration et affectation interdite sur la meme ligne
@@ -31,5 +40,5 @@ A FAIRE:
 - indenter #if et #ifdef
 - indenter macro imbrique
 - saut de ligne entre chaque fonction
-- mots clef interdits: switch, for, goto, do while
+- mots clefs interdits: switch, for, goto, do while
 - Verification du Makefile

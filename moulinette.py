@@ -5,6 +5,7 @@ import platform
 from colorama import init, Fore
 
 ESPACES_PAR_TABULATION = 8
+VERSION = 0.1
 
 auteurs = []
 
@@ -37,14 +38,14 @@ class Norme(object):
 
     def afficher_erreurs(self):
         if self.nom_afficher == 0 and len(self.erreurs) > 0:
-            print (self.nom_fichier)
+            print (Fore.CYAN + self.nom_fichier)
             self.nom_afficher = 1
         for erreur in self.erreurs:
             print (erreur)
 
     def afficher_dangers(self):
         if self.nom_afficher == 0 and len(self.dangers) > 0:
-            print (self.nom_fichier)
+            print (Fore.CYAN + self.nom_fichier)
             self.nom_afficher = 1
         for danger in self.dangers:
             print (danger)
@@ -339,7 +340,7 @@ class Norme(object):
 #                    print (alignement_nom_variable)
                     for var in alignement_nom_variable:
                         if alignement_nom_fonction != var:
-                            print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
+#                            print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
                             return self.reporter_erreur("Mauvais alignements de la fonction avec les variables", index + 1)
 
     def inspecter_macro_majuscule(self):
@@ -444,14 +445,33 @@ def afficher_logins():
         print ("Logins trouves: " + Fore.GREEN + " ".join(auteurs) + Fore.RESET)
     else:
         print ("Aucun login trouve")
-        
+
+def options_presentes(argv):
+    if "--version" in argv or "--help" in argv:
+        return True
+    return False
+
+def aide(argv):
+    if options_presentes(argv) == False or "--help" in argv:
+        print ("Faut faire comme ca: " + sys.argv[0] + " __REPERTOIRE__\n")
+        print ("Options:")
+        print ("\t--ici\t\t:Analyse le dossier courant")
+        print ("\t--help\t\t:Affiche ca")
+        print ("\t--version\t:Affiche la version de la moulinette")
+    if "--version" in argv:
+        print ("VERSION: " + str(VERSION))
+
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print ("Usage: ./" + sys.argv[0] + " __DIRECTORY__")
+    if len(sys.argv) <= 1 or options_presentes(sys.argv) == True:
+        aide(sys.argv)
     else:
         if platform.system() == "Windows":
             init()
-        files = get_list_files(sys.argv[1])
+        if "--ici" in sys.argv:
+            dossier = "."
+        else:
+            dossier = sys.argv[1]
+        files = get_list_files(dossier)
         nb_erreurs = 0
         for file in files:
             check = Norme(file)

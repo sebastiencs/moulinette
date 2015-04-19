@@ -5,7 +5,7 @@ import platform
 from colorama import init, Fore
 
 ESPACES_PAR_TABULATION = 8
-VERSION = 0.1
+VERSION = 0.101
 
 auteurs = []
 
@@ -177,7 +177,7 @@ class Norme(object):
                     and len(self.lines[index - 1].split()) > 0
                     and self.lines[index - 1].split()[-1] != '\\'):
                         self.reporter_danger("Il semble que t'ai mis du code dans un fichier header", index + 1)
-                        
+
     def inspecter_macro_dans_code(self):
         for index, line in enumerate(self.lines):
             strtab = line.split()
@@ -245,7 +245,8 @@ class Norme(object):
                 if self.dans_une_fonction(index) == True:
                     self.reporter_erreur("Commentaire dans du code", index + 1)
 
-    def get_alignement_nom_fonction(self, line, debut):
+    # def get_alignement_nom_fonction(self, line, debut):
+    def get_alignement_apres_type(self, line, debut):
         line = line.expandtabs(ESPACES_PAR_TABULATION)
         while debut < len(line) and line[debut] == ' ':
             debut += 1
@@ -262,30 +263,32 @@ class Norme(object):
                 return True
         return False
 
-    def get_alignement_variable(self, line, index):
-#        print (line, end = "")
+    def pass_type(self, line, index):
         i = 0
         while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
             i += 1
-        if line.find("static ", i, i + 7) != -1:
-            i += 7
-        if line.find("unsigned ", i, i + 9) != -1:
-            i += 9
-        if line.find("long long", i, i + 9) >= 0:
-            i += 9
+        if line.find("static "  , i, i + 7) != -1:      i += 7
+        if line.find("const "   , i, i + 6) != -1:      i += 6
+        if line.find("unsigned ", i, i + 9) != -1:      i += 9
+        if line.find("signed "  , i, i + 7) != -1:      i += 7
+        if line.find("long long", i, i + 9) != -1:      i += 9
         while i < len(line) and line[i].isalnum() == True or line[i] == '_':
             i += 1
         debut = i
         while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
             if line[i] == ' ':
-#                print (i)
-                self.reporter_erreur("Utilisation d'espace entre le type et le nom de la variable", index + 1)
-                return 0
+                self.reporter_erreur("Utilisation d'espace entre le type et le nom de la variable/fonction",
+                                     index + 1)
+                return -1
             i += 1
-        alignement_variable = self.get_alignement_nom_fonction(line, debut)
-#        print ("align: " + str(alignement_variable) + " line: " + str(line))
+        return debut
+
+    def get_alignement_variable(self, line, index):
+        debut = self.pass_type(line, index)
+        if debut == -1:
+            return -1
+        alignement_variable = self.get_alignement_apres_type(line, debut)
         return alignement_variable
-#        print ("debut: " + str(debut) + " " + line + " " + str(alignement_variable))
 
     def get_alignement_nom_variable(self, index):
         alignements = []
@@ -293,55 +296,43 @@ class Norme(object):
             index += 1
         index += 1
         while self.is_variable_declaration(index) == True:
-#            print (self.lines[index], end = "")
-            alignements.append(self.get_alignement_variable(self.lines[index], index))
+            align_variable = self.get_alignement_variable(self.lines[index], index)
+            if align_variable == -1:
+                return [-1]
+            alignements.append(align_variable)
             index += 1
 #        print (alignements)
         return alignements
 
-    def inspecter_alignement(self):
-        alignement = 0
+    def debut_de_fonction(self, line, index):
+        if (index < len(self.lines) - 1 and len(self.lines[index + 1]) > 0
+            and self.lines[index][0] != ' ' and self.lines[index][0] != '\t'
+            and (self.lines[index + 1][0] == '{'
+                 or (index < len(self.lines) - 2 and self.lines[index + 2][0] == '{')
+                 or (index < len(self.lines) - 3 and self.lines[index + 3][0] == '{')
+                 or (index < len(self.lines) - 4 and self.lines[index + 4][0] == '{'))
+            and len(self.lines[index]) > 0 and self.lines[index][0] != '}'
+            and self.lines[index][0] != '\n'
+            and '#' not in line
+            and "extern" not in line
+            and line.startswith("**") == False and line.startswith("*/") == False
+            and line.startswith("/*") == False
+            and line.find('(') >= 0
+            and '=' not in line):
+            return True
+        return False
+
+        def inspecter_alignement(self):
         for index, line in enumerate(self.lines):
-            if (index < len(self.lines) - 1 and len(self.lines[index + 1]) > 0
-                and self.lines[index][0] != ' ' and self.lines[index][0] != '\t'
-                and (self.lines[index + 1][0] == '{'
-                     or (index < len(self.lines) - 2 and self.lines[index + 2][0] == '{')
-                     or (index < len(self.lines) - 3 and self.lines[index + 3][0] == '{')
-                     or (index < len(self.lines) - 4 and self.lines[index + 4][0] == '{'))
-                and len(self.lines[index]) > 0 and self.lines[index][0] != '}'
-                and self.lines[index][0] != '\n'
-                and '#' not in line
-                and "extern" not in line
-                and line.startswith("**") == False and line.startswith("*/") == False
-                and line.startswith("/*") == False
-                and line.find('(') >= 0
-                and '=' not in line):
-                i = 0
-                if line.startswith("static "):
-                    i = 7
-                if line.find("inline ", i, i + 7) >= 0:
-                    i += 7
-                if line.find("unsigned ", i, i + 9) >= 0:
-                    i += 9
-                if line.find("long long", i, i + 9) >= 0:
-                    i += 9
-                while i < len(line) and (line[i].isalnum() == True or line[i] == '_'):
-                    i += 1
-                debut = i
-                while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
-                    if line[i] == ' ':
-#                        print (line)
-                        self.reporter_erreur("Utilisation d'espace entre le type et le nom de fonction", index + 1)
-                        return 0
-                    i += 1
-                alignement_nom_fonction = self.get_alignement_nom_fonction(line, debut)
+            if self.debut_de_fonction(line, index) == True:
+                debut = self.pass_type(line, index)
+                alignement_nom_fonction = self.get_alignement_apres_type(line, debut)
                 alignement_nom_variable = self.get_alignement_nom_variable(index)
-                if len(alignement_nom_variable) > 0:
-#                    print (alignement_nom_variable)
+                if len(alignement_nom_variable) > 0 and alignement_nom_fonction != -1:
                     for var in alignement_nom_variable:
-                        if alignement_nom_fonction != var:
-#                            print ("var: " + str(var) + " fonction: " + str(alignement_nom_fonction))
-                            return self.reporter_erreur("Mauvais alignements de la fonction avec les variables", index + 1)
+                        if alignement_nom_fonction != var and var != -1:
+                            return self.reporter_erreur("Mauvais alignements de la fonction avec les variables",
+                                                        index + 1)
 
     def inspecter_macro_majuscule(self):
         for index, line in enumerate(self.lines):
@@ -350,7 +341,7 @@ class Norme(object):
                 if len(strtab) > 2 and strtab[0].upper() == "#DEFINE" and strtab[1].upper() != strtab[1]:
                     self.reporter_erreur("La macro doit etre en majuscule", index + 1)
                 elif (len(strtab) > 3 and strtab[0] == '#' and strtab[1].upper() == "DEFINE"
-                and strtab[2].upper() != strtab[2]):
+                      and strtab[2].upper() != strtab[2]):
                     self.reporter_erreur("La macro doit etre en majuscule", index + 1)
 
     def inspecter_typedef(self):
@@ -424,7 +415,7 @@ class Norme(object):
         self.inspecter_macro_majuscule()
         self.inspecter_typedef()
         self.inspecter_global()
-        
+
 def get_list_files(dir_name):
     files = []
     for path, dirs, filenames in os.walk(dir_name):
@@ -447,7 +438,7 @@ def afficher_logins():
         print ("Aucun login trouve")
 
 def options_presentes(argv):
-    if "--version" in argv or "--help" in argv:
+    if "--help" in argv:
         return True
     return False
 
@@ -457,9 +448,7 @@ def aide(argv):
         print ("Options:")
         print ("\t--ici\t\t:Analyse le dossier courant")
         print ("\t--help\t\t:Affiche ca")
-        print ("\t--version\t:Affiche la version de la moulinette")
-    if "--version" in argv:
-        print ("VERSION: " + str(VERSION))
+        print ("\nVERSION: " + str(VERSION))
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1 or options_presentes(sys.argv) == True:

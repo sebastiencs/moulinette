@@ -5,7 +5,7 @@ Ca verifie l'alignement des noms de fonctions avec les variables mais dans certa
 
 Si ca pete de fausses erreurs pour les alignements ou les 80 colonnes modifie la variable ESPACES_PAR_TABULATIONS au debut du fichier
 
-VERSION: 0.5
+VERSION: 0.105
 
 DEPENDENCES:
 - yum install python3-colorama

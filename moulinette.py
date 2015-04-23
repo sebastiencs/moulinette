@@ -192,19 +192,19 @@ class Norme(object):
             for key in keyword:
                 if key in line.split() and line.startswith("**") is False:
                     self.reporter_danger("Il semble que t'ai mis du code dans \
-                    un fichier header: utilisation du mot clef " + key,
+un fichier header: utilisation du mot clef " + key,
                                          index + 1)
                 if ('(' in line and ')' in line
                     and 'DEFINE' not in line.upper() and
                         ';' not in line):
                     if index == 0:
                         self.reporter_danger("Il semble que t'ai mis du code \
-                        dans un fichier header", index + 1)
+dans un fichier header", index + 1)
                     elif (len(self.lines[index - 1]) > 0 and
                           len(self.lines[index - 1].split()) > 0 and
                           self.lines[index - 1].split()[-1] != '\\'):
                         self.reporter_danger("Il semble que t'ai mis du code \
-                        dans un fichier header", index + 1)
+dans un fichier header", index + 1)
 
     def inspecter_macro_dans_code(self):
         for index, line in enumerate(self.lines):
@@ -369,7 +369,7 @@ class Norme(object):
                 align_nom_fonction = self.get_alignement_apres_type(line,
                                                                     debut)
                 align_nom_variable = self.get_alignement_nom_variable(index)
-                if len(align_nom_variable > 0 and
+                if (len(align_nom_variable) > 0 and
                    align_nom_fonction != -1):
                     for var in align_nom_variable:
                         if align_nom_fonction != var and var != -1:

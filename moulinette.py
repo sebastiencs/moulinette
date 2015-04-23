@@ -85,38 +85,38 @@ class Norme(object):
             return self.reporter_erreur("Entete manquante", 1)
         if self.lines[0] != "/*\n":
             return self.reporter_erreur("Entete manquante, ou pas a la 1ere \
-            ligne (ouais j'suis chiant)", 1)
+ligne (ouais j'suis chiant)", 1)
         for i in range(1, 8):
             if self.lines[i].startswith("**") is False:
                 self.reporter_erreur("Entete: debut de ligne different de \
-                \"**\"", i)
+\"**\"", i)
         if self.lines[8] != "*/\n":
             self.reporter_erreur("Fin de l'entete bidon (\"*/\" attendu)", 9)
         if len(self.lines[1].split()) < 6:
             self.reporter_danger("Seconde ligne de l'entete pas conforme: \
-            \"FICHIER for PROJET in REPERTOIRE\" ", 2)
+\"FICHIER for PROJET in REPERTOIRE\" ", 2)
         else:
             if self.nom_fichier.endswith(self.lines[1].split()[1]) is False:
                 self.reporter_danger("Nom de fichier dans l'entete different \
-                du vrai nom de fichier", 2)
+du vrai nom de fichier", 2)
             if "/home/" in self.lines[1].split()[5]:
                 self.ajouter_auteur(self.lines[1].split()[5].split('/')[2])
         if len(self.lines[3].split()) < 4:
             self.reporter_danger("Quatrieme ligne de l'entete pas conforme: \
-            \"Made by TROU_DU_CUL\" ", 2)
+\"Made by TROU_DU_CUL\" ", 2)
         else:
             self.ajouter_auteur(self.lines[3].split()[3])
         if len(self.lines[4].split()) < 3:
             self.reporter_danger("Cinquieme ligne de l'entete pas conforme: \
-            \"Login TROU@DANS_TON_CUL\" ", 2)
+\"Login TROU@DANS_TON_CUL\" ", 2)
         if len(self.lines[6].split()) < 9:
             self.reporter_danger("Septieme ligne de l'entete pas conforme: \
-            \"Started on [la suite]\" ", 2)
+\"Started on [la suite]\" ", 2)
         else:
             self.ajouter_auteur(self.lines[6].split()[8])
         if len(self.lines[7].split()) < 9:
             self.reporter_danger("Huitieme ligne de l'entete pas conforme: \
-            \"Last [la suite]\" ", 2)
+\"Last [la suite]\" ", 2)
         else:
             self.ajouter_auteur(self.lines[7].split()[8])
 
@@ -149,7 +149,7 @@ class Norme(object):
             i += 1
         if i == len(self.lines):
             return self.reporter_erreur("Pas de #endif pour la macro temoin, \
-            ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
+ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
 
     def recuperer_fin_fonction(self, index_debut):
         for index, line in enumerate(self.lines):
@@ -312,8 +312,7 @@ dans un fichier header", index + 1)
         while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
             if line[i] == ' ':
                 self.reporter_erreur("Utilisation d'espace entre le type \
-                et le nom de la variable/fonction",
-                                     index + 1)
+et le nom de la variable/fonction", index + 1)
                 return -1
             i += 1
         return debut
@@ -374,7 +373,7 @@ dans un fichier header", index + 1)
                     for var in align_nom_variable:
                         if align_nom_fonction != var and var != -1:
                             return self.reporter_erreur("Mauvais alignements \
-                            de la fonction avec les variables", index + 1)
+de la fonction avec les variables", index + 1)
 
     def inspecter_macro_majuscule(self):
         for index, line in enumerate(self.lines):
@@ -398,14 +397,14 @@ dans un fichier header", index + 1)
                     if (strtab[1] == "struct" and
                        strtab[2].startswith("s_") is False):
                         self.reporter_erreur("Le nom de structure doit \
-                        commencer par \"s_\"", index + 1)
+commencer par \"s_\"", index + 1)
                     elif (strtab[1] == "union" and
                           strtab[2].startswith("u_") is False):
                         self.reporter_erreur("Le nom d'union doit commencer \
-                        par \"u_\"", index + 1)
+par \"u_\"", index + 1)
                     if ';' in line and strtab[-1].startswith("t_") is False:
                         self.reporter_erreur("Le nom d'un type doit commencer \
-                        par \"t_\"", index + 1)
+par \"t_\"", index + 1)
                     elif ';' not in line:
                         i = index
                         while i < len(self.lines) and self.lines[i][0] != '}':
@@ -415,7 +414,7 @@ dans un fichier header", index + 1)
                             if (len(strtab2[-1]) > 0 and
                                strtab2[-1].startswith("t_") is False):
                                 self.reporter_erreur("Le nom d'un type doit \
-                                commencer par \"t_\"", index + 1)
+commencer par \"t_\"", index + 1)
 
     def inspecter_global(self):
         for index, line in enumerate(self.lines):
@@ -452,6 +451,7 @@ dans un fichier header", index + 1)
             self.f = open(self.nom_fichier, "r")
         except:
             print ("Impossible d'ouvrir " + self.nom_fichier)
+            return -1
 
         for line in self.f:
             self.lines.append(line)

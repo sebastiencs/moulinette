@@ -5,7 +5,7 @@ import platform
 from colorama import init, Fore
 
 ESPACES_PAR_TABULATION = 8
-VERSION = 0.105
+VERSION = 0.107
 
 auteurs = []
 

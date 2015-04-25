@@ -378,12 +378,12 @@ de la fonction avec les variables", index + 1)
     def inspecter_macro_majuscule(self):
         for index, line in enumerate(self.lines):
             if len(line) > 0:
-                strtab = line.split()
-                if (len(strtab) > 2 and strtab[0].upper() == "#DEFINE" and
+                strtab = line.split("(")[0].split()
+                if (len(strtab) > 1 and strtab[0].upper() == "#DEFINE" and
                    strtab[1].upper() != strtab[1]):
                     self.reporter_erreur("La macro doit etre en majuscule",
                                          index + 1)
-                elif (len(strtab) > 3 and strtab[0] == '#' and
+                elif (len(strtab) > 2 and strtab[0] == '#' and
                       strtab[1].upper() == "DEFINE"
                       and strtab[2].upper() != strtab[2]):
                     self.reporter_erreur("La macro doit etre en majuscule",

@@ -2,10 +2,12 @@
 import sys
 import os
 import platform
+import subprocess
 from colorama import init, Fore
 
-ESPACES_PAR_TABULATION = 8
 VERSION = 0.107
+ESPACES_PAR_TABULATION = 8
+FLAGS_CLANG = "-Wall -Wextra -pedantic"
 
 auteurs = []
 
@@ -135,11 +137,11 @@ du vrai nom de fichier", 2)
         macro_temoin = self.lines[i].split()[1]
         if macro_temoin != macro_attendue:
             return self.reporter_erreur("Macro témoin differente de celle \
-            attendue (" + macro_attendue + ")", i + 1)
+attendue (" + macro_attendue + ")", i + 1)
         if (self.lines[i + 1].startswith("# define") is False or
            len(self.lines[i + 1].split()) < 3):
             return self.reporter_erreur("#ifndef doit etre suivi \
-            de \"# define \" sur la ligne suivante", i + 2)
+de \"# define \" sur la ligne suivante", i + 2)
         if self.lines[i + 1].split()[2] != macro_temoin:
             return self.reporter_erreur("Deux macros témoins différentes",
                                         i + 2)
@@ -278,7 +280,6 @@ dans un fichier header", index + 1)
                 if self.dans_une_fonction(index) is True:
                     self.reporter_erreur("Commentaire dans du code", index + 1)
 
-    # def get_alignement_nom_fonction(self, line, debut):
     def get_alignement_apres_type(self, line, debut):
         line = line.expandtabs(ESPACES_PAR_TABULATION)
         while debut < len(line) and line[debut] == ' ':
@@ -485,6 +486,15 @@ def get_list_files(dir_name):
     return files
 
 
+def get_list_makefile(dir_name):
+    files = []
+    for path, dirs, filenames in os.walk(dir_name):
+        for file in filenames:
+            if file == "Makefile":
+                files.append(os.path.join(path, file))
+    return files
+
+
 def afficher_erreur(nb):
     if nb == 0:
         print (Fore.GREEN
@@ -522,6 +532,64 @@ def aide(argv):
         print ("\t--help\t\t:Affiche cette aide.")
         print ("\nVERSION: " + str(VERSION))
 
+
+def verifier_makefile(makefile):
+    all, clean, fclean, re, name = 0, 0, 0, 0, 0
+    wildcard, ligne_wildcard = 0, 0
+    make = open(makefile, "r")
+    for i, line in enumerate(make):
+        if len(line) > 0 and line.startswith("all:"):
+            all = 1
+        if len(line) > 0 and line.startswith("clean:"):
+            clean = 1
+        if len(line) > 0 and line.startswith("fclean:"):
+            fclean = 1
+        if len(line) > 0 and line.startswith("re:"):
+            re = 1
+        if len(line) > 0 and line.startswith("$(NAME):"):
+            name = 1
+        if "*" in line:
+            wildcard = 1
+            ligne_wildcard = i
+    if not all or not clean or not fclean or not re or not name:
+        print (Fore.CYAN + makefile + ":" + Fore.RED)
+    if not all:
+        print ("\til manque la regle 'all'")
+    if not clean:
+        print ("\til manque la regle 'clean'")
+    if not fclean:
+        print ("\til manque la regle 'fclean'")
+    if not re:
+        print ("\til manque la regle 're'")
+    if not name:
+        print ("\til manque la regle '$(NAME)'")
+    if wildcard:
+        print ("\tWildcard interdit ligne " + str(ligne_wildcard))
+    print (Fore.RESET, end="")
+
+
+def afficher_erreurs_clang(file, files):
+    headers = []
+    includes = ""
+    for f in files:
+        if f.endswith('.h') and os.path.dirname(f) not in headers:
+            headers.append(os.path.dirname(f))
+    includes = " ".join(headers)
+    src = []
+    sources = ""
+    for f in files:
+        if f.endswith('.c') and f not in src:
+            src.append(f)
+    sources = " ".join(src)
+    cmd = ("clang -fsyntax-only " + FLAGS_CLANG + " -I " + includes
+           + " " + sources)
+    os.popen(cmd).read()
+    # out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+    #                        stderr=subprocess.PIPE)#.stderr.read()
+    # normal, erreur = out.communicate()
+    # print (erreur)
+
+
 if __name__ == '__main__':
     if len(sys.argv) <= 1 or options_presentes(sys.argv) is True:
         aide(sys.argv)
@@ -532,6 +600,9 @@ if __name__ == '__main__':
             dossier = "."
         else:
             dossier = sys.argv[1]
+        makefiles = get_list_makefile(dossier)
+        for makefile in makefiles:
+            verifier_makefile(makefile)
         files = get_list_files(dossier)
         nb_erreurs = 0
         for file in files:
@@ -540,5 +611,6 @@ if __name__ == '__main__':
             check.afficher_dangers()
             check.afficher_erreurs()
             nb_erreurs += check.nombres_erreurs_et_dangers()
+        # afficher_erreurs_clang(file, files)
         afficher_erreur(nb_erreurs)
         afficher_logins()

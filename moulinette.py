@@ -5,7 +5,7 @@ import platform
 import subprocess
 from colorama import init, Fore
 
-VERSION = 0.107
+VERSION = 0.109
 ESPACES_PAR_TABULATION = 8
 FLAGS_CLANG = "-Wall -Wextra -pedantic"
 
@@ -509,11 +509,15 @@ def afficher_erreur(nb):
 
 
 def afficher_logins():
+    user = os.getenv("USER")
     if len(auteurs) > 0:
-        print ("Logins trouvés: "
-               + Fore.GREEN
-               + " ".join(auteurs)
-               + Fore.RESET)
+        print ("Logins trouvés: ", end="")
+        for auteur in auteurs:
+            if auteur == user:
+                print (Fore.GREEN + auteur, end=" ")
+            else:
+                print (Fore.YELLOW + auteur, end=" ")
+        print (Fore.RESET)
     else:
         print ("Aucun login trouvé")
 
@@ -583,7 +587,9 @@ def afficher_erreurs_clang(file, files):
     sources = " ".join(src)
     cmd = ("clang -fsyntax-only " + FLAGS_CLANG + " -I " + includes
            + " " + sources)
+    print ("\n\nClang:")
     os.popen(cmd).read()
+    print ("")
     # out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
     #                        stderr=subprocess.PIPE)#.stderr.read()
     # normal, erreur = out.communicate()

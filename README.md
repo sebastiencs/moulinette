@@ -5,7 +5,7 @@ Ca vérifie l'alignement des noms de fonctions avec les variables mais dans cert
 
 Si ca pète de fausses erreurs pour les alignements ou les 80 colonnes, il faut modifiee la variable ESPACES_PAR_TABULATIONS au debut du fichier.
 
-VERSION: 0.107
+VERSION: 0.109
 
 ##DEPENDENCES:
 yum based distros:

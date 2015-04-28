@@ -82,40 +82,40 @@ class Norme(object):
 
     def inspecter_entete(self):
         if self.nb_lignes < 9:
-            return self.reporter_erreur("Entete manquante", 1)
+            return self.reporter_erreur("Entête manquante", 1)
         if self.lines[0] != "/*\n":
-            return self.reporter_erreur("Entete manquante, ou pas a la 1ere \
-ligne (ouais j'suis chiant)", 1)
+            return self.reporter_erreur("Entête manquante, ou n'étant pas à la 1ère \
+ligne", 1)
         for i in range(1, 8):
             if self.lines[i].startswith("**") is False:
-                self.reporter_erreur("Entete: debut de ligne different de \
+                self.reporter_erreur("Entête: début de ligne different de \
 \"**\"", i)
         if self.lines[8] != "*/\n":
-            self.reporter_erreur("Fin de l'entete bidon (\"*/\" attendu)", 9)
+            self.reporter_erreur("Fin de l'entête bidon (\"*/\" attendu)", 9)
         if len(self.lines[1].split()) < 6:
-            self.reporter_danger("Seconde ligne de l'entete pas conforme: \
+            self.reporter_danger("Seconde ligne de l'entête non-conforme: \
 \"FICHIER for PROJET in REPERTOIRE\" ", 2)
         else:
             if self.nom_fichier.endswith(self.lines[1].split()[1]) is False:
-                self.reporter_danger("Nom de fichier dans l'entete different \
+                self.reporter_danger("Nom de fichier dans l'entête different \
 du vrai nom de fichier", 2)
             if "/home/" in self.lines[1].split()[5]:
                 self.ajouter_auteur(self.lines[1].split()[5].split('/')[2])
         if len(self.lines[3].split()) < 4:
-            self.reporter_danger("Quatrieme ligne de l'entete pas conforme: \
+            self.reporter_danger("Quatrieme ligne de l'entête non-conforme: \
 \"Made by TROU_DU_CUL\" ", 2)
         else:
             self.ajouter_auteur(self.lines[3].split()[3])
         if len(self.lines[4].split()) < 3:
-            self.reporter_danger("Cinquieme ligne de l'entete pas conforme: \
+            self.reporter_danger("Cinquieme ligne de l'entête non-conforme: \
 \"Login TROU@DANS_TON_CUL\" ", 2)
         if len(self.lines[6].split()) < 9:
-            self.reporter_danger("Septieme ligne de l'entete pas conforme: \
+            self.reporter_danger("Septieme ligne de l'entête non-conforme: \
 \"Started on [la suite]\" ", 2)
         else:
             self.ajouter_auteur(self.lines[6].split()[8])
         if len(self.lines[7].split()) < 9:
-            self.reporter_danger("Huitieme ligne de l'entete pas conforme: \
+            self.reporter_danger("Huitieme ligne de l'entête pas conforme: \
 \"Last [la suite]\" ", 2)
         else:
             self.ajouter_auteur(self.lines[7].split()[8])
@@ -131,24 +131,24 @@ du vrai nom de fichier", 2)
                and self.lines[i].startswith("#ifndef ") is False):
             i += 1
         if i == len(self.lines) or len(self.lines[i].split()) < 2:
-            return self.reporter_erreur("Pas de macro temoin", i + 1)
+            return self.reporter_erreur("Pas de macro témoin", i + 1)
         macro_temoin = self.lines[i].split()[1]
         if macro_temoin != macro_attendue:
-            return self.reporter_erreur("Macro temoin differente de celle \
+            return self.reporter_erreur("Macro témoin differente de celle \
             attendue (" + macro_attendue + ")", i + 1)
         if (self.lines[i + 1].startswith("# define") is False or
            len(self.lines[i + 1].split()) < 3):
             return self.reporter_erreur("#ifndef doit etre suivi \
             de \"# define \" sur la ligne suivante", i + 2)
         if self.lines[i + 1].split()[2] != macro_temoin:
-            return self.reporter_erreur("Deux macros temoins differentes",
+            return self.reporter_erreur("Deux macros témoins différentes",
                                         i + 2)
         while (i < len(self.lines)
                and self.lines[i].startswith("#endif /* !" +
                                             macro_temoin + " */") is False):
             i += 1
         if i == len(self.lines):
-            return self.reporter_erreur("Pas de #endif pour la macro temoin, \
+            return self.reporter_erreur("Pas de #endif pour la macro témoin, \
 ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
 
     def recuperer_fin_fonction(self, index_debut):
@@ -191,19 +191,19 @@ ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
         for index, line in enumerate(self.lines):
             for key in keyword:
                 if key in line.split() and line.startswith("**") is False:
-                    self.reporter_danger("Il semble que t'ai mis du code dans \
+                    self.reporter_danger("Il semble y avoir du code dans \
 un fichier header: utilisation du mot clef " + key,
                                          index + 1)
                 if ('(' in line and ')' in line
                     and 'DEFINE' not in line.upper() and
                         ';' not in line):
                     if index == 0:
-                        self.reporter_danger("Il semble que t'ai mis du code \
+                        self.reporter_danger("Il semble y avoir du code \
 dans un fichier header", index + 1)
                     elif (len(self.lines[index - 1]) > 0 and
                           len(self.lines[index - 1].split()) > 0 and
                           self.lines[index - 1].split()[-1] != '\\'):
-                        self.reporter_danger("Il semble que t'ai mis du code \
+                        self.reporter_danger("Il semble y avoir du code \
 dans un fichier header", index + 1)
 
     def inspecter_macro_dans_code(self):
@@ -212,7 +212,7 @@ dans un fichier header", index + 1)
             if ((len(strtab) > 1 and strtab[0] == '#'
                  and strtab[1].upper() == 'DEFINE') or
                     (len(strtab) > 0 and strtab[0].upper() == "#DEFINE")):
-                self.reporter_erreur("Presence de macros dans un fichier .c",
+                self.reporter_erreur("Présence de macros dans un fichier .c",
                                      index + 1)
 
     def mot_clef_dans_ligne(self, ligne):
@@ -224,7 +224,7 @@ dans un fichier header", index + 1)
         return 0
 
     def inspecter_prototype_dans_code(self):
-        """ Gere pas le multiligne """
+        """ Gère pas le multiligne """
         for index, line in enumerate(self.lines):
             strtab = line.split()
             if ('=' not in line and '(' in line and ')' in line and ';' in line
@@ -381,12 +381,12 @@ de la fonction avec les variables", index + 1)
                 strtab = line.split("(")[0].split()
                 if (len(strtab) > 1 and strtab[0].upper() == "#DEFINE" and
                    strtab[1].upper() != strtab[1]):
-                    self.reporter_erreur("La macro doit etre en majuscule",
+                    self.reporter_erreur("La macro doit être en majuscule",
                                          index + 1)
                 elif (len(strtab) > 2 and strtab[0] == '#' and
                       strtab[1].upper() == "DEFINE"
                       and strtab[2].upper() != strtab[2]):
-                    self.reporter_erreur("La macro doit etre en majuscule",
+                    self.reporter_erreur("La macro doit être en majuscule",
                                          index + 1)
 
     def inspecter_typedef(self):
@@ -488,24 +488,24 @@ def get_list_files(dir_name):
 def afficher_erreur(nb):
     if nb == 0:
         print (Fore.GREEN
-               + "Aucune erreur trouve"
+               + "Aucune erreur trouvée."
                + Fore.RESET)
     else:
         print("")
         print (Fore.YELLOW
                + str(nb)
-               + " erreurs et dangers trouves"
+               + " Erreurs et warnings trouvés."
                + Fore.RESET)
 
 
 def afficher_logins():
     if len(auteurs) > 0:
-        print ("Logins trouves: "
+        print ("Logins trouvés: "
                + Fore.GREEN
                + " ".join(auteurs)
                + Fore.RESET)
     else:
-        print ("Aucun login trouve")
+        print ("Aucun login trouvé")
 
 
 def options_presentes(argv):
@@ -516,10 +516,10 @@ def options_presentes(argv):
 
 def aide(argv):
     if options_presentes(argv) is False or "--help" in argv:
-        print ("Faut faire comme ca: " + sys.argv[0] + " __REPERTOIRE__\n")
+        print ("Usage: " + sys.argv[0] + " <répertoire>\n")
         print ("Options:")
-        print ("\t--ici\t\t:Analyse le dossier courant")
-        print ("\t--help\t\t:Affiche ca")
+        print ("\t--ici\t\t:Analyse le dossier courant.")
+        print ("\t--help\t\t:Affiche cette aide.")
         print ("\nVERSION: " + str(VERSION))
 
 if __name__ == '__main__':

@@ -1,36 +1,43 @@
-Moulinette faite sur un coup de tete et pour apprendre le pyton.
-Parsing a base de split et readline, donc oui c'est tout sauf du parsing et c'est bien degueulasse
+Moulinette faite sur un coup de tête et pour apprendre le pyton.
+Parsing à base de split et readline, donc oui c'est tout sauf du parsing et c'est bien degueulasse
 
-Ca verifie l'alignement des noms de fonctions avec les variables mais dans certains cas (les mots clefs auxquels j'ai pas pense) ca marchera pas
+Ca vérifie l'alignement des noms de fonctions avec les variables mais dans certains cas (les mots clefs auxquels j'ai pas pense) ca ne marchera pas.
 
-Si ca pete de fausses erreurs pour les alignements ou les 80 colonnes modifie la variable ESPACES_PAR_TABULATIONS au debut du fichier
+Si ca pète de fausses erreurs pour les alignements ou les 80 colonnes, il faut modifiee la variable ESPACES_PAR_TABULATIONS au debut du fichier.
 
 VERSION: 0.107
 
-DEPENDENCES:
+##DEPENDENCES:
+yum based distros:
+```bash
 - yum install python3-colorama
+```
+arch based distros:
+```bash
+yaourt -S python-colorama-git
+```
 
-FAIT:
+##FAIT:
 
-- Affiche les logins trouves dans les fichiers (tu me dois 42 points)
+- Affiche les logins trouvés dans les fichiers (tu me dois 42 points)
 - 80 colonnes max
-- une instruction par ligne
+- Une instruction par ligne
 - 25 lignes par fonction
 - 5 fonctions par fichier
 - Seuls les inclusions de headers, les declarations, les defines, les prototypes et les macros sont autorises dans les fichiers headers.
-- macros multilignes
-- Verification du header
+- Macros multilignes
+- Vérification du header
 - Les protopypes et macros se trouvent uniquement dans les fichiers headers
 - Commentaires dans le code
 - Commentaires C++
 - Alignement du nom de fonctions et des variables
 - Noms de macros en majuscules
-- Verification des prefix pour les structures, unions, globales et types
-- Verification de la macro temoin dans le header
+- Vérification des prefix pour les structures, unions, globales et types
+- Vérification de la macro temoin dans le header
 
-POUR BIENTOT:
+##POUR BIENTOT:
 
-- identifiants en minuscules, chiffres et _
+- Identifiants en minuscules, chiffres et _
 - Saut de ligne entre les declarations de variables et les instructions
 - Pas de ligne vide dans du code
 - Declaration et affectation interdite sur la meme ligne

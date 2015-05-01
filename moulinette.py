@@ -5,7 +5,7 @@ import platform
 import subprocess
 from colorama import init, Fore
 
-VERSION = 0.110
+VERSION = 0.111
 ESPACES_PAR_TABULATION = 8
 FLAGS_CLANG = "-Wall -Wextra -pedantic"
 
@@ -256,7 +256,7 @@ dans un fichier header", index + 1)
                 return True
         return False
 
-    def verifier_mots_clefs_interdits(self):
+    def inspecter_mots_clefs_interdits(self):
         for index, line in enumerate(self.lines):
             if (len(line.split()) > 1 and
                 ((line.split()[0] == "do"
@@ -269,6 +269,25 @@ dans un fichier header", index + 1)
                  and line.split()[1].startswith("(")))):
                 self.reporter_erreur("Mot clef interdit: " + line.split()[0],
                                      index + 1)
+
+    def inspecter_espace_apres_mot_clef(self):
+        for index, line in enumerate(self.lines):
+            if (len(line.split()) > 0 and
+                (line.split()[0].startswith("if(") is True or
+                 line.split()[0].startswith("else(") is True or
+                 line.split()[0].startswith("return(") is True or
+                 line.split()[0].startswith("return;") is True or
+                 line.split()[0].startswith("while(") is True or
+                 line.split()[0].startswith("for(") is True or
+                 line.split()[0].startswith("do(") is True or
+                 line.split()[0].startswith("switch(") is True)):
+                self.reporter_erreur("Il manque un espace apres le mot clef '"
+                                     + line.split()[0] + "'", index + 1)
+            elif (len(line.split()) > 1 and
+                  line.split()[0] == "else" and
+                  line.split()[1].startswith("if(")):
+                self.reporter_erreur("Il manque un espace apres le mot clef '"
+                                     + "else if'", index + 1)
 
     def inspecter_commentaire_cpp(self):
         for index, line in enumerate(self.lines):
@@ -489,7 +508,8 @@ commencer par \"t_\"", index + 1)
         self.inspecter_macro_majuscule()
         self.inspecter_typedef()
         self.inspecter_global()
-        self.verifier_mots_clefs_interdits()
+        self.inspecter_mots_clefs_interdits()
+        self.inspecter_espace_apres_mot_clef()
 
 
 def get_list_files(dir_name):

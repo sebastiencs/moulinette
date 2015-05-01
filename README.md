@@ -5,7 +5,7 @@ Ca vérifie l'alignement des noms de fonctions avec les variables mais dans cert
 
 Si ca pète de fausses erreurs pour les alignements ou les 80 colonnes, il faut modifiee la variable ESPACES_PAR_TABULATIONS au debut du fichier.
 
-VERSION: 0.110
+VERSION: 0.111
 
 ##DEPENDENCES:
 yum based distros:
@@ -36,6 +36,7 @@ yaourt -S python-colorama-git
 - Vérification de la macro temoin dans le header
 - Verification du Makefile
 - mots clefs interdits: switch, for, goto, do while
+- Espace entre mot clef et la parenthese ou le point virgule
 
 ##POUR BIENTOT:
 
@@ -47,9 +48,9 @@ yaourt -S python-colorama-git
 - 4 parametres par fonctions
 - Un espace apres la virgule
 - Pas d'espace entre le nom de fonctions et la parenthese
-- Espace entre mot clef et la parenthese ou le point virgule
 - Pas d'espace apres un operateur unaire
 - Operateurs binaires et ternaires separes par un espace de chaque cote
 - indenter #if et #ifdef
 - indenter macro imbrique
 - saut de ligne entre chaque fonction
+- (type *) et pas (type*)

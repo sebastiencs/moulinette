@@ -53,4 +53,4 @@ yaourt -S python-colorama-git
 - indenter #if et #ifdef
 - indenter macro imbrique
 - saut de ligne entre chaque fonction
-- (type *) et pas (type*)
+- (type \*) et pas (type\*)

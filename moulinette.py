@@ -5,7 +5,7 @@ import platform
 import subprocess
 from colorama import init, Fore
 
-VERSION = 0.109
+VERSION = 0.110
 ESPACES_PAR_TABULATION = 8
 FLAGS_CLANG = "-Wall -Wextra -pedantic"
 
@@ -256,6 +256,20 @@ dans un fichier header", index + 1)
                 return True
         return False
 
+    def verifier_mots_clefs_interdits(self):
+        for index, line in enumerate(self.lines):
+            if (len(line.split()) > 1 and
+                ((line.split()[0] == "do"
+                  and line.split()[1].startswith("(")) or
+                (line.split()[0] == "switch"
+                 and line.split()[1].startswith("(")) or
+                (line.split()[0] == "for"
+                 and line.split()[1].startswith("(")) or
+                (line.split()[0] == "goto"
+                 and line.split()[1].startswith("(")))):
+                self.reporter_erreur("Mot clef interdit: " + line.split()[0],
+                                     index + 1)
+
     def inspecter_commentaire_cpp(self):
         for index, line in enumerate(self.lines):
             found = line.find("//")
@@ -475,6 +489,7 @@ commencer par \"t_\"", index + 1)
         self.inspecter_macro_majuscule()
         self.inspecter_typedef()
         self.inspecter_global()
+        self.verifier_mots_clefs_interdits()
 
 
 def get_list_files(dir_name):

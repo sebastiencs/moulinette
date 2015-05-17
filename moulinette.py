@@ -335,11 +335,14 @@ dans un fichier header", index + 1)
         i = 0
         while i < len(line) and (line[i] == ' ' or line[i] == '\t'):
             i += 1
-        if line.find("static "  , i, i + 7) != -1:      i += 7
-        if line.find("const "   , i, i + 6) != -1:      i += 6
-        if line.find("unsigned ", i, i + 9) != -1:      i += 9
-        if line.find("signed "  , i, i + 7) != -1:      i += 7
-        if line.find("long long", i, i + 9) != -1:      i += 9
+        if line.find("static "          , i, i + 7 ) != -1:      i += 7
+        if line.find("const "           , i, i + 6 ) != -1:      i += 6
+        if line.find("unsigned "        , i, i + 9 ) != -1:      i += 9
+        if line.find("signed "          , i, i + 7 ) != -1:      i += 7
+        if line.find("long long"        , i, i + 9 ) != -1:      i += 9
+        if line.find("inline"           , i, i + 6 ) != -1:      i += 6
+        if line.find("__attribute__"    , i, i + 13) != -1:      i += 13
+        if line.find("((always_inline))", i, i + 17) != -1:      i += 17
         while i < len(line) and line[i].isalnum() is True or line[i] == '_':
             i += 1
         debut = i

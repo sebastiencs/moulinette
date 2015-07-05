@@ -162,6 +162,7 @@ ou mal formate: \"#endif /* !MACRO /*\"", i + 1)
     def inspecter_nombre_ligne_par_fonction(self):
         for index, line in enumerate(self.lines):
             if (index > 0 and line[0] == '{' and
+               len(self.lines[index - 1].split()) > 1 and
                self.lines[index - 1].split()[-1] != '='):
                 fin_fonction = self.recuperer_fin_fonction(index)
                 nb_lignes = fin_fonction - index - 1

@@ -1,4 +1,4 @@
-Moulinette faite sur un coup de tête et pour apprendre le pyton.
+Moulinette faite sur un coup de tête et pour apprendre le python.
 Parsing à base de split et readline, donc oui c'est tout sauf du parsing et c'est bien degueulasse
 
 Ca vérifie l'alignement des noms de fonctions avec les variables mais dans certains cas (les mots clefs auxquels j'ai pas pense) ca ne marchera pas.
